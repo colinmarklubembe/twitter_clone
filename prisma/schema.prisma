@@ -10,6 +10,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Tweet {
+    id       String   @id @default(auto()) @map("_id") @db.ObjectId
+    userId   String   @db.ObjectId
+    content  String
+    createdAt DateTime @default(now())
+    likes    Like[]
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+
+}
+
+model Like { 
+    id      String @id @default(auto()) @map("_id") @db.ObjectId
+    userId String @db.ObjectId
+    tweetId String @db.ObjectId
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    tweet Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([tweetId])
+
+}
 model Post {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
     name      String
@@ -59,6 +84,23 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+
+    // Non-NextAuth fields
+    tweets        Tweet[]
+    likes         Like[]
+    followers     UserFollowers[] @relation("Followers")
+    following     UserFollowers[] @relation("Following")
+}
+
+model UserFollowers {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  followerId String @db.ObjectId
+  followingId String @db.ObjectId
+  follower   User @relation("Followers", fields: [followerId], references: [id])
+  following  User @relation("Following", fields: [followingId], references: [id])
+
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model VerificationToken {
